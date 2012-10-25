@@ -1,0 +1,173 @@
+#
+# Build Quel apps. Simple hand-written (and rather verbose) Makefile, for now.
+#
+# NOTE: Currently, this Makefile requires ugliness in the code. In particular,
+# a block like this is needed in every C file that contains a main() entrypoint:
+#
+#
+# /* Disable hijacking of main() by SDL. This is needed for command-line Win32 build. */
+# #if defined UNDEF_MAIN
+# #undef main
+# #endif
+#
+# UNDEF_MAIN is defined by a command-line option to the compiler, below. This is
+# not the way things are supposed to work, but I (Emil) haven't been able to
+# create anything better. And this does build the binaries, with rather minimal
+# disturbance. People building from an IDE should not be affected.
+#
+
+# Location of a (compiled) Verse core directory. Must contain verse.h and libverse.a.
+VERSE=..\verse
+
+TARGETS=connector.exe loqairou.exe quelsolaar.exe uvedit.exe lpaint.exe
+
+ALL:		$(TARGETS)
+
+CFLAGS=/nologo /I$(VERSE) /DUNDEF_MAIN /Zi /D_CRT_SECURE_NO_DEPRECATE
+LIBEXE=link /lib
+LIBFLAGS=/nologo /out:
+VERSELIB=$(VERSE)\verse.lib
+# Comment out the next two lines to build without the "Persuade" library.
+PERSUADE=persuade.lib
+#CFLAGS=$(CFLAGS) /DPERSUADE_ENABLED
+
+connector.exe:	co_3d_view.obj co_clone.obj co_main.obj co_game.obj co_intro.obj co_popup.obj co_projection.obj co_summary.obj co_symbols.obj co_vn_audio.obj co_vn_bitmap.obj \
+		co_vn_curve.obj co_vn_geometry.obj co_vn_graphics.obj co_vn_handle.obj co_vn_head.obj co_vn_mat_render.obj co_vn_material.obj \
+		co_vn_object.obj co_vn_search.obj co_vn_text.obj co_widgets.obj \
+		st_matrix_operations.obj seduce_persuade.obj \
+		resources\connector.res \
+		seduce.lib betray.lib enough.lib $(PERSUADE) deceive.lib
+		$(CC) $(CFLAGS) /Fe$@ $** $(VERSELIB) wsock32.lib winmm.lib opengl32.lib user32.lib gdi32.lib
+
+loqairou.exe:	la_cache.obj la_draw_overlay.obj la_flare_fx.obj la_geometry_undo.obj la_hole.obj la_input_parser.obj la_intro.obj la_key_input.obj \
+		la_main.obj la_neighbor.obj la_particle_fx.obj la_pop_up.obj la_projection.obj la_reference.obj la_save.obj \
+		la_settings.obj la_tool_center.obj la_tool_collapse.obj la_tool_cut_paste.obj la_tool_deploy.obj la_tool_draw.obj la_tool_edge_connector.obj \
+		la_tool_manipulator.obj la_tool_poly_select.obj la_tool_reshape.obj la_tool_revolve.obj la_tool_select.obj \
+		la_tool_slice.obj la_tool_splitter.obj la_tool_subdivide.obj \
+		st_math.obj st_matrix_operations.obj st_text.obj \
+		resources\loqairou.res \
+		seduce.lib betray.lib enough.lib deceive.lib $(PERSUADE)
+		$(CC) $(CFLAGS) /Fe$@ $** $(VERSELIB) wsock32.lib winmm.lib opengl32.lib user32.lib gdi32.lib
+
+quelsolaar.exe:	qs_camera.obj qs_intro.obj qs_main.obj qs_settings.obj \
+		st_math.obj st_matrix_operations.obj st_text.c st_types.obj seduce_persuade.obj \
+		resources\quelsolaar.res \
+		$(PERSUADE) seduce.lib betray.lib deceive.lib enough.lib
+		$(CC) $(CFLAGS) /Fe$@ $** $(VERSELIB) wsock32.lib winmm.lib opengl32.lib user32.lib gdi32.lib
+
+uvedit.exe:	uv_main.obj uv_draw.obj uv_edge_collapse.obj uv_geometry.obj uv_menu.obj uv_overlay.obj uv_popup.obj uv_texture.obj uv_tool_corner.obj \
+		uv_tool_edge.obj uv_tool_polygon.obj uv_transform.obj uv_tool_select.obj uv_tool_strip.obj uv_unfold.obj \
+		uv_view.obj uv_input_parse.obj \
+		st_matrix_operations.obj \
+		betray.lib enough.lib deceive.lib seduce.lib $(PERSUADE)
+		$(CC) $(CFLAGS) /Fe$@ $** $(VERSELIB) wsock32.lib winmm.lib opengl32.lib user32.lib gdi32.lib
+
+lpaint.exe:	lp_geometry.obj lp_handle.obj lp_layer_group.obj lp_main.obj lp_menu.obj lp_paint.obj lp_popup.obj \
+		lp_projection.obj \
+		st_matrix_operations.obj \
+		betray.lib deceive.lib enough.lib seduce.lib
+		$(CC) $(CFLAGS) /Fe$@ $** $(VERSELIB) wsock32.lib winmm.lib opengl32.lib user32.lib gdi32.lib
+
+# -------------------------------------------------------------
+
+seduce.lib:	s_background.obj s_draw.obj s_editor.obj s_line_font.obj s_main.obj s_popup.obj s_settings.obj s_settings_window.obj s_text.obj
+		$(LIBEXE) $(LIBFLAGS)$@ $**
+
+betray.lib:	b_glut.obj b_main.obj b_sdl.obj b_win32.obj
+		$(LIBEXE) $(LIBFLAGS)$@ $**
+
+enough.lib:	e_storage_audio.obj e_storage_bitmap.obj e_storage_curve.obj e_storage_geometry.obj e_storage_head.obj e_storage_material.obj \
+		e_storage_node.obj e_storage_object.obj e_storage_text.obj st_types.obj
+		$(LIBEXE) $(LIBFLAGS)$@ $**
+
+persuade.lib:	p_extension.obj p_flare.obj p_geometry.obj p_impostor.obj p_noise.obj p_object_environment.obj p_object_handle.obj p_object_light.obj p_object_param.obj \
+		p_object_render.obj p_render_to_texture.obj p_sds_array.obj p_sds_geo_clean.obj p_sds_geo_divide.obj p_sds_obj.obj \
+		p_sds_obj_anim.obj p_sds_obj_displace.obj p_sds_obj_edge_normal.obj p_sds_obj_param.obj p_sds_obj_sort.obj p_sds_obj_tess.obj \
+		p_sds_table.obj p_sds_table_debug.obj p_sds_table_edge_sort.obj p_sds_table_normals.obj p_sds_table_split.obj \
+		p_shader_extension.obj p_shader_gl_one_fall_back.obj p_shader_ramp_texture.obj p_shader_writer.obj p_status_print.obj \
+		p_task.obj p_texture.obj
+		$(LIBEXE) $(LIBFLAGS)$@ $**
+
+deceive.lib:	d_main.obj d_master.obj
+		$(LIBEXE) $(LIBFLAGS)$@ $**
+
+# -------------------------------------------------------------
+
+# Distribution archive creation rules. They don't rule at all,
+# though.
+#
+
+d=%date:~-10%%
+# I would dearly like to strip the hypens from this 'd' variable,
+# but I don't have nearly enough nmake-fu to pull that off. There
+# is the e=%d:-=% construct that seems to work in plain shells, but
+# it won't work here, oh no. :/ Suggestions welcome.
+
+de=enough-$(d)-win32
+dc=connector-$(d)-win32
+dl=loqairou-$(d)-win32
+du=uvedit-$(d)-win32
+dq=quelsolaar-$(d)-win32
+
+dist:	dist-enough dist-connector dist-loqairou dist-quelsolaar #dist-uvedit
+
+dist-enough:	enough.lib enough.h README.enough
+	if exist $(de). ( rmdir /s /q $(de). )
+	mkdir $(de)
+	copy /b enough.lib $(de)
+	copy /a enough.h $(de)
+	copy /a README.enough $(de)
+	zip -r $(de).zip $(de)
+	rmdir /s /q $(de)
+
+
+dist-connector:	connector.exe
+	echo $(dc)
+	if exist $(dc). ( rmdir /s /q $(dc). )
+	mkdir $(dc)
+	copy /b connector.exe $(dc)
+	copy /a README.connector $(dc)
+	copy /b c:\winnt\system32\sdl.dll $(dc)
+	zip -r $(dc).zip $(dc)
+	rmdir /s /q $(dc)
+
+dist-loqairou:	loqairou.exe
+	echo $(dl)
+	if exist $(dl). ( rmdir /s /q $(dl). )
+	mkdir $(dl)
+	mkdir $(dl)\docs
+	mkdir $(dl)\docs\loq-airou
+	copy /b loqairou.exe $(dl)
+	copy /a README.loqairou $(dl)
+	copy /a docs\loq-airou\*.html $(dl)\docs\loq-airou/
+	copy /b docs\loq-airou\*.png  $(dl)\docs\loq-airou/
+	copy /b docs\loq-airou\*.jpg  $(dl)\docs\loq-airou/
+	copy /b c:\winnt\system32\sdl.dll $(dl)
+	zip -r $(dl).zip $(dl)
+	rmdir /s /q $(dl)
+
+dist-uvedit:	uvedit.exe
+	echo $(du)
+	if exist $(du). ( rmdir /s /q $(du). )
+	mkdir $(du)
+	copy /b uvedit.exe $(du)
+	copy /a README.uvedit $(du)
+	copy /b c:\winnt\system32\sdl.dll $(du)
+	zip -r $(du).zip $(du)
+	rmdir /s /q $(du)
+
+dist-quelsolaar:	quelsolaar.exe
+	echo $(dq)
+	if exist $(dq). ( rmdir /s /q $(dq). )
+	mkdir $(dq)
+	copy /b quelsolaar.exe $(dq)
+	copy /a README.quelsolaar $(dq)
+	copy /b c:\winnt\system32\sdl.dll $(dq)
+	zip -r $(dq).zip $(dq)
+	rmdir /s /q $(dq)
+
+# -------------------------------------------------------------
+
+clean:
+	del *.exe *.obj *.lib
+
