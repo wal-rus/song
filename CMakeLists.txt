@@ -5,12 +5,12 @@ include_directories(betray)
 include_directories(enough)
 include_directories(verse)
 include_directories(seduce)
-include_directories(decieve)
+include_directories(deceive)
 
 set(TARGETS 
 		betray
 		#co_on
-		decieve 
+		deceive 
 		enough 
 		#loq_airou 
 		persuade 
@@ -19,7 +19,6 @@ set(TARGETS
 		seduce 
 		#uv
 )
-
 
 foreach( loop_var ${TARGETS} )
 	add_subdirectory( ${loop_var} )
